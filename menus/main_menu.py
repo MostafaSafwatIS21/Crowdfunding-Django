@@ -1,12 +1,14 @@
 import sys
 import getpass
 from services.auth_service import AuthService
+from services.profile_service import ProfileService
 from exceptions.base import ValidationException
 from exceptions.auth_exceptions import InvalidCredentialsException
 
 class MainMenu:
-    def __init__(self, auth_service: AuthService):
+    def __init__(self, auth_service: AuthService, profile_service: ProfileService):
         self.auth_service = auth_service
+        self.profile_service = profile_service
         self.logged_in_user = None
 
     def run(self):
@@ -41,28 +43,34 @@ class MainMenu:
 
     def show_logged_in_menu(self):
         print(f"\n--- Logged In: Welcome {self.logged_in_user.first_name} {self.logged_in_user.last_name} ---")
-        print("1. Logout")
-        print("2. Exit")
+        print("1. View Profile")
+        print("2. Update Profile")
+        print("3. Change Password")
+        print("4. Logout")
+        print("5. Exit")
         
-        choice = input("Select an option (1-2): ").strip()
+        choice = input("Select an option (1-5): ").strip()
         
         if choice == "1":
+            self.handle_view_profile()
+        elif choice == "2":
+            self.handle_update_profile()
+        elif choice == "3":
+            self.handle_change_password()
+        elif choice == "4":
             print(f"\nLogged out successfully from account: {self.logged_in_user.email}")
             self.logged_in_user = None
-        elif choice == "2":
+        elif choice == "5":
             print("\nThank you for using the Crowdfunding Platform. Goodbye!")
             sys.exit(0)
         else:
-            print("\n[Error] Invalid choice. Please select 1 or 2.")
+            print("\n[Error] Invalid choice. Please select a number between 1 and 5.")
 
     def handle_registration(self):
         print("\n--- Create a New Account ---")
         first_name = input("First Name: ").strip()
         last_name = input("Last Name: ").strip()
         email = input("Email: ").strip()
-        
-        # Using getpass if possible, or standard input with clear visual feedback
-        # getpass hides the typed password which is standard/secure.
         password = getpass.getpass("Password: ")
         confirm_password = getpass.getpass("Confirm Password: ")
         phone = input("Egyptian Phone Number (starts with 010/011/012/015): ").strip()
@@ -100,3 +108,76 @@ class MainMenu:
             print(f"\n[Error] {e.message}")
         except Exception as e:
             print(f"\n[Error] An unexpected error occurred: {e}")
+
+    def handle_view_profile(self):
+        print("\n--- User Profile Details ---")
+        try:
+            user = self.profile_service.get_profile(self.logged_in_user.id)
+            self.logged_in_user = user
+            print(f"  First Name:  {user.first_name}")
+            print(f"  Last Name:   {user.last_name}")
+            print(f"  Email:       {user.email}")
+            print(f"  Phone:       {user.phone}")
+            print(f"  Joined On:   {user.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
+        except Exception as e:
+            print(f"\n[Error] Failed to fetch profile details: {e}")
+
+    def handle_update_profile(self):
+        print("\n--- Update Profile Details ---")
+        try:
+            user = self.profile_service.get_profile(self.logged_in_user.id)
+            self.logged_in_user = user
+            
+            first_name = input(f"First Name [{user.first_name}]: ").strip() or user.first_name
+            last_name = input(f"Last Name [{user.last_name}]: ").strip() or user.last_name
+            email = input(f"Email [{user.email}]: ").strip() or user.email
+            phone = input(f"Phone [{user.phone}]: ").strip() or user.phone
+
+            data = {
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "phone": phone
+            }
+
+            confirm = input("\nAre you sure you want to save these changes? (y/N): ").strip().lower()
+            if confirm not in ("y", "yes"):
+                print("\n[Cancelled] Profile update cancelled.")
+                return
+
+            updated_user = self.profile_service.update_profile(user.id, data)
+            self.logged_in_user = updated_user
+            print("\n[Success] Profile updated successfully!")
+        except ValidationException as e:
+            print("\n[Error] Profile update failed due to validation issues:")
+            for field, error in e.errors.items():
+                print(f"  - {field.replace('_', ' ').capitalize()}: {error}")
+        except Exception as e:
+            print(f"\n[Error] Failed to update profile: {e}")
+
+    def handle_change_password(self):
+        print("\n--- Change Password ---")
+        try:
+            old_password = getpass.getpass("Current Password: ")
+            new_password = getpass.getpass("New Password: ")
+            confirm_password = getpass.getpass("Confirm New Password: ")
+
+            data = {
+                "old_password": old_password,
+                "new_password": new_password,
+                "confirm_password": confirm_password
+            }
+
+            confirm = input("\nAre you sure you want to change your password? (y/N): ").strip().lower()
+            if confirm not in ("y", "yes"):
+                print("\n[Cancelled] Password change cancelled.")
+                return
+
+            self.profile_service.change_password(self.logged_in_user.id, data)
+            print("\n[Success] Password changed successfully!")
+        except ValidationException as e:
+            print("\n[Error] Password change failed due to validation issues:")
+            for field, error in e.errors.items():
+                print(f"  - {field.replace('_', ' ').capitalize()}: {error}")
+        except Exception as e:
+            print(f"\n[Error] Failed to change password: {e}")
