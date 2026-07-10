@@ -14,11 +14,11 @@ class ProjectRepository:
         self.db.refresh(project)
         return project
 
-    def get_by_id(self, project_id: int) -> Project | None:
+    def find_by_id(self, project_id: int) -> Project | None:
         """Retrieve a project by its ID."""
         return self.db.query(Project).filter(Project.id == project_id).first()
 
-    def get_all(self) -> list[Project]:
+    def find_all(self) -> list[Project]:
         """Retrieve all projects."""
         return self.db.query(Project).all()
 

@@ -3,8 +3,8 @@ from config.settings import logger
 from database.connection import SessionLocal
 from repositories.user_repository import UserRepository
 from validators.user_validator import UserValidator
-from services.auth_service import AuthService
-from services.profile_service import ProfileService
+from services.authentication_service import AuthenticationService
+from services.user_service import UserService
 from repositories.project_repository import ProjectRepository
 from validators.project_validator import ProjectValidator
 from services.project_service import ProjectService
@@ -20,15 +20,15 @@ def main():
         # 2. Instantiate repository, validator, and service layers
         user_repo = UserRepository(db)
         user_validator = UserValidator(user_repo)
-        auth_service = AuthService(user_repo, user_validator)
-        profile_service = ProfileService(user_repo, user_validator)
+        auth_service = AuthenticationService(user_repo, user_validator)
+        user_service = UserService(user_repo, user_validator)
         
         project_repo = ProjectRepository(db)
         project_validator = ProjectValidator()
         project_service = ProjectService(project_repo, project_validator)
         
         # 3. Launch main menu CLI
-        menu = MainMenu(auth_service, profile_service, project_service)
+        menu = MainMenu(auth_service, user_service, project_service)
         menu.run()
         
     except KeyboardInterrupt:

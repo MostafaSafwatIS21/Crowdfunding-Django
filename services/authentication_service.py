@@ -4,7 +4,7 @@ from validators.user_validator import UserValidator
 from utils.security import hash_password, verify_password
 from exceptions.auth_exceptions import InvalidCredentialsException
 
-class AuthService:
+class AuthenticationService:
     def __init__(self, user_repo: UserRepository, user_validator: UserValidator):
         self.user_repo = user_repo
         self.user_validator = user_validator
@@ -34,7 +34,7 @@ class AuthService:
         )
 
         # 5. Persist to database
-        return self.user_repo.create_user(new_user)
+        return self.user_repo.create(new_user)
 
     def login(self, email: str, password: str) -> User:
         """Authenticate user by email and password, returning User if successful."""

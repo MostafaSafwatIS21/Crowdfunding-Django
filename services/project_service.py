@@ -15,11 +15,11 @@ class ProjectService:
 
     def get_all_projects(self) -> list[Project]:
         """Retrieve all projects."""
-        return self.project_repo.get_all()
+        return self.project_repo.find_all()
 
     def get_project(self, project_id: int) -> Project:
         """Retrieve a specific project by ID. Raises Exception if not found."""
-        project = self.project_repo.get_by_id(project_id)
+        project = self.project_repo.find_by_id(project_id)
         if not project:
             raise Exception("Project not found.")
         return project

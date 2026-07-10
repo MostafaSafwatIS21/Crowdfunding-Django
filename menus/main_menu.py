@@ -1,16 +1,16 @@
 import sys
 import getpass
-from services.auth_service import AuthService
-from services.profile_service import ProfileService
+from services.authentication_service import AuthenticationService
+from services.user_service import UserService
 from exceptions.base import ValidationException
 from exceptions.auth_exceptions import InvalidCredentialsException
 
 from menus.project_menu import ProjectMenu
 
 class MainMenu:
-    def __init__(self, auth_service: AuthService, profile_service: ProfileService, project_service):
+    def __init__(self, auth_service: AuthenticationService, user_service: UserService, project_service):
         self.auth_service = auth_service
-        self.profile_service = profile_service
+        self.user_service = user_service
         self.project_service = project_service
         self.logged_in_user = None
 
@@ -119,7 +119,7 @@ class MainMenu:
     def handle_view_profile(self):
         print("\n--- User Profile Details ---")
         try:
-            user = self.profile_service.get_profile(self.logged_in_user.id)
+            user = self.user_service.get_profile(self.logged_in_user.id)
             self.logged_in_user = user
             print(f"  First Name:  {user.first_name}")
             print(f"  Last Name:   {user.last_name}")
@@ -132,7 +132,7 @@ class MainMenu:
     def handle_update_profile(self):
         print("\n--- Update Profile Details ---")
         try:
-            user = self.profile_service.get_profile(self.logged_in_user.id)
+            user = self.user_service.get_profile(self.logged_in_user.id)
             self.logged_in_user = user
             
             first_name = input(f"First Name [{user.first_name}]: ").strip() or user.first_name
@@ -152,7 +152,7 @@ class MainMenu:
                 print("\n[Cancelled] Profile update cancelled.")
                 return
 
-            updated_user = self.profile_service.update_profile(user.id, data)
+            updated_user = self.user_service.update_profile(user.id, data)
             self.logged_in_user = updated_user
             print("\n[Success] Profile updated successfully!")
         except ValidationException as e:
@@ -180,7 +180,7 @@ class MainMenu:
                 print("\n[Cancelled] Password change cancelled.")
                 return
 
-            self.profile_service.change_password(self.logged_in_user.id, data)
+            self.user_service.change_password(self.logged_in_user.id, data)
             print("\n[Success] Password changed successfully!")
         except ValidationException as e:
             print("\n[Error] Password change failed due to validation issues:")
