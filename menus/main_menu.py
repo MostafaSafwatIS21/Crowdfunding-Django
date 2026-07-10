@@ -5,10 +5,13 @@ from services.profile_service import ProfileService
 from exceptions.base import ValidationException
 from exceptions.auth_exceptions import InvalidCredentialsException
 
+from menus.project_menu import ProjectMenu
+
 class MainMenu:
-    def __init__(self, auth_service: AuthService, profile_service: ProfileService):
+    def __init__(self, auth_service: AuthService, profile_service: ProfileService, project_service):
         self.auth_service = auth_service
         self.profile_service = profile_service
+        self.project_service = project_service
         self.logged_in_user = None
 
     def run(self):
@@ -46,10 +49,11 @@ class MainMenu:
         print("1. View Profile")
         print("2. Update Profile")
         print("3. Change Password")
-        print("4. Logout")
-        print("5. Exit")
+        print("4. Manage Projects")
+        print("5. Logout")
+        print("6. Exit")
         
-        choice = input("Select an option (1-5): ").strip()
+        choice = input("Select an option (1-6): ").strip()
         
         if choice == "1":
             self.handle_view_profile()
@@ -58,13 +62,16 @@ class MainMenu:
         elif choice == "3":
             self.handle_change_password()
         elif choice == "4":
+            project_menu = ProjectMenu(self.project_service, self.logged_in_user)
+            project_menu.show()
+        elif choice == "5":
             print(f"\nLogged out successfully from account: {self.logged_in_user.email}")
             self.logged_in_user = None
-        elif choice == "5":
+        elif choice == "6":
             print("\nThank you for using the Crowdfunding Platform. Goodbye!")
             sys.exit(0)
         else:
-            print("\n[Error] Invalid choice. Please select a number between 1 and 5.")
+            print("\n[Error] Invalid choice. Please select a number between 1 and 6.")
 
     def handle_registration(self):
         print("\n--- Create a New Account ---")

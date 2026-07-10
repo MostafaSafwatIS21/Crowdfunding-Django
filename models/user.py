@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy.orm import relationship
 from database.base import Base
 
 class User(Base):
@@ -12,5 +13,6 @@ class User(Base):
     phone = Column(String(20), nullable=False)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
+    projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
     def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email} name={self.first_name} {self.last_name}>"

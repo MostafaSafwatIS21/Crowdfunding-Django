@@ -5,6 +5,9 @@ from repositories.user_repository import UserRepository
 from validators.user_validator import UserValidator
 from services.auth_service import AuthService
 from services.profile_service import ProfileService
+from repositories.project_repository import ProjectRepository
+from validators.project_validator import ProjectValidator
+from services.project_service import ProjectService
 from menus.main_menu import MainMenu
 
 def main():
@@ -20,8 +23,12 @@ def main():
         auth_service = AuthService(user_repo, user_validator)
         profile_service = ProfileService(user_repo, user_validator)
         
+        project_repo = ProjectRepository(db)
+        project_validator = ProjectValidator()
+        project_service = ProjectService(project_repo, project_validator)
+        
         # 3. Launch main menu CLI
-        menu = MainMenu(auth_service, profile_service)
+        menu = MainMenu(auth_service, profile_service, project_service)
         menu.run()
         
     except KeyboardInterrupt:

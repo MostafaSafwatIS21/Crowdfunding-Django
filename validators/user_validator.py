@@ -1,20 +1,14 @@
-import re
 from exceptions.base import ValidationException
 from repositories.user_repository import UserRepository
+from validators.common import (
+    validate_email_format,
+    validate_egyptian_phone,
+    validate_required_string
+)
 
 class UserValidator:
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
-
-    def is_valid_email_format(self, email: str) -> bool:
-        """Validate if the email has a correct general format."""
-        email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        return bool(re.match(email_regex, email))
-
-    def is_valid_egyptian_phone(self, phone: str) -> bool:
-        """Validate if phone matches standard Egyptian formats (010, 011, 012, 015 with 11 digits)."""
-        phone_regex = r"^01[0125]\d{8}$"
-        return bool(re.match(phone_regex, phone))
 
     def validate_registration(self, data: dict) -> None:
         """Validate registration data and raise ValidationException if invalid."""
@@ -31,25 +25,26 @@ class UserValidator:
         }
         
         for field, label in required_fields.items():
-            val = data.get(field)
-            if val is None or (isinstance(val, str) and not val.strip()):
-                errors[field] = f"{label} is required."
+            try:
+                validate_required_string(data.get(field), label)
+            except ValidationException as e:
+                errors[field] = e.errors[label]
 
         # 2. Email format & uniqueness
-        email = data.get("email")
-        if isinstance(email, str) and email.strip():
-            email = email.strip()
-            if not self.is_valid_email_format(email):
-                errors["email"] = "Invalid email format."
-            elif self.user_repo.exists(email):
-                errors["email"] = "Email is already registered."
+        if "email" not in errors and data.get("email"):
+            try:
+                email = validate_email_format(data.get("email"))
+                if self.user_repo.exists(email):
+                    errors["email"] = "Email is already registered."
+            except ValidationException as e:
+                errors["email"] = e.errors["email"]
 
         # 3. Egyptian phone number validation
-        phone = data.get("phone")
-        if isinstance(phone, str) and phone.strip():
-            phone = phone.strip()
-            if not self.is_valid_egyptian_phone(phone):
-                errors["phone"] = "Invalid Egyptian phone number. Must start with 010, 011, 012, or 015 and be exactly 11 digits."
+        if "phone" not in errors and data.get("phone"):
+            try:
+                validate_egyptian_phone(data.get("phone"))
+            except ValidationException as e:
+                errors["phone"] = e.errors["phone"]
 
         # 4. Password matching check
         password = data.get("password")
@@ -73,25 +68,26 @@ class UserValidator:
         }
         
         for field, label in required_fields.items():
-            val = data.get(field)
-            if val is None or (isinstance(val, str) and not val.strip()):
-                errors[field] = f"{label} is required."
+            try:
+                validate_required_string(data.get(field), label)
+            except ValidationException as e:
+                errors[field] = e.errors[label]
 
         # 2. Email format & uniqueness (excluding the current user)
-        email = data.get("email")
-        if isinstance(email, str) and email.strip():
-            email = email.strip()
-            if not self.is_valid_email_format(email):
-                errors["email"] = "Invalid email format."
-            elif self.user_repo.email_exists_excluding_user(email, current_user_id):
-                errors["email"] = "Email is already registered by another user."
+        if "email" not in errors and data.get("email"):
+            try:
+                email = validate_email_format(data.get("email"))
+                if self.user_repo.email_exists_excluding_user(email, current_user_id):
+                    errors["email"] = "Email is already registered by another user."
+            except ValidationException as e:
+                errors["email"] = e.errors["email"]
 
         # 3. Egyptian phone validation
-        phone = data.get("phone")
-        if isinstance(phone, str) and phone.strip():
-            phone = phone.strip()
-            if not self.is_valid_egyptian_phone(phone):
-                errors["phone"] = "Invalid Egyptian phone number. Must start with 010, 011, 012, or 015 and be exactly 11 digits."
+        if "phone" not in errors and data.get("phone"):
+            try:
+                validate_egyptian_phone(data.get("phone"))
+            except ValidationException as e:
+                errors["phone"] = e.errors["phone"]
 
         if errors:
             raise ValidationException("Profile validation error occurred", errors)
@@ -108,9 +104,10 @@ class UserValidator:
         }
 
         for field, label in required_fields.items():
-            val = data.get(field)
-            if val is None or (isinstance(val, str) and not val.strip()):
-                errors[field] = f"{label} is required."
+            try:
+                validate_required_string(data.get(field), label)
+            except ValidationException as e:
+                errors[field] = e.errors[label]
 
         # 2. New password matching check
         new_password = data.get("new_password")
