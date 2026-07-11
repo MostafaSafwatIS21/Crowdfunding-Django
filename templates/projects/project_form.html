@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-8">
+    <div class="bg-surface py-8 px-6 shadow rounded-lg sm:px-10 border border-gray-100">
+        <div class="mb-6 flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-slate">{{ title }}</h2>
+            <a href="{% url 'projects:list' %}" class="text-sm text-primary hover:underline">Back to campaigns</a>
+        </div>
+
+        <form class="space-y-6" action="" method="POST">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 border-l-4 border-danger p-4 mb-4">
+                    <div class="text-sm text-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate mb-1">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="mt-2 text-sm text-danger">{{ field.errors.0 }}</p>
+                    {% elif field.help_text %}
+                        <p class="mt-2 text-sm text-muted">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="flex justify-end space-x-3 pt-4">
+                <a href="{% url 'projects:list' %}" class="px-4 py-2 border border-primary text-primary rounded-md shadow-sm text-sm font-medium hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Save Campaign
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
